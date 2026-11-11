@@ -23,3 +23,4 @@
 3. Add Pi-native session resume and tool permission workflows.
 4. Add deterministic mocked end-to-end task test.
 5. Add measured performance baselines.
+\n- Explicit free-model allowlist gate for `chat` and `run`; verified IDs are passed to Pi. Provider billing enforcement remains unimplemented.\n

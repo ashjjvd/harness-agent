@@ -17,7 +17,7 @@ A small, safety-conscious TypeScript control layer around the maintained Pi codi
 git clone https://github.com/ashjjvd/harness-agent.git
 cd harness-agent
 npm ci
-npm install --no-save --package-lock=false typescript @types/node
+npm install --no-save --package-lock=false typescript@5.8.3 @types/node@25.1.0
 npm run build
 npm link
 harness-agent doctor
@@ -41,7 +41,7 @@ npm run check
 
 ## Spending policy
 
-Defaults are `allowPaidModels: false`, `allowPaidFallback: false`, and zero paid budgets. This wrapper does not enforce billing at provider level or independently verify free-tier quotas. Configure only models known to be free in Pi and inspect provider terms. A ChatGPT subscription is not automatically API access.
+Defaults are `allowPaidModels: false`, `allowPaidFallback: false`, and an empty `freeModels` allowlist. In this state `chat` and `run` are blocked until you explicitly add verified free model IDs (for example `provider/model-id`) to `~/.config/harness-agent/config.json`. The wrapper passes that allowlist to Pi using `--model` and `--models`. Only add IDs after verifying current provider pricing and terms. Explicitly setting `allowPaidModels: true` opts out of this restriction. The wrapper cannot meter or enforce provider billing budgets, and provider-side fallback behavior must be checked separately. A ChatGPT subscription is not automatically API access.
 
 ## Architecture
 
@@ -49,4 +49,4 @@ Defaults are `allowPaidModels: false`, `allowPaidFallback: false`, and zero paid
 - `src/config.ts`: local validated policy configuration.
 - `src/safety.ts`: workspace path checks, exact replacement, and pure model eligibility helper.
 
-See `docs/SECURITY.md`, `docs/PROVIDERS.md`, and `docs/ROADMAP.md`. Offline tests do not contact model providers. No live provider, benchmark, or performance improvement is claimed.
+See `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `docs/PROVIDERS.md`, `docs/UPSTREAMS.md`, and `docs/ROADMAP.md`. Offline tests do not contact model providers. No live provider, benchmark, or performance improvement is claimed.

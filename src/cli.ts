@@ -1,9 +1,6 @@
 import { spawn } from 'node:child_process';
-import { access, constants } from 'node:fs';
 import { resolve } from 'node:path';
-import { promisify } from 'node:util';
 import { ensureConfig, loadConfig, configPath } from './config.js';
-const accessAsync = promisify(access);
 const help = `harness-agent — a low-cost wrapper around Pi
 
 Usage:
@@ -37,20 +34,22 @@ export async function main(argv: string[]): Promise<number> {
   if(command==='--version'||command==='-v'){console.log('harness-agent 0.1.0');return 0;}
   if(command==='config'){const p=await ensureConfig();console.log(`Config: ${p}\n${JSON.stringify(await loadConfig(),null,2)}`);return 0;}
   if(command==='doctor'){
-    const c=await loadConfig(); console.log(`Node: ${process.version} (Pi requires >=22.19)\nConfig: ${configPath()}\nPaid models: ${c.allowPaidModels?'enabled':'disabled'}\nPaid fallback: ${c.allowPaidFallback?'enabled':'disabled'}`);
-    try{await accessAsync(c.piCommand,constants.X_OK);console.log(`Pi executable: ${c.piCommand}`);}catch{console.log(`Pi executable not found: ${c.piCommand}`);}
+    const c=await loadConfig(); console.log(`Node: ${process.version} (Pi requires >=22.19)\nConfig: ${configPath()}\nPaid models: ${c.allowPaidModels?'enabled by explicit opt-in':'blocked by wrapper'}\nFree model allowlist: ${c.freeModels.length ? c.freeModels.join(', ') : '(empty — configure verified free model IDs)'}\nPaid fallback: ${c.allowPaidFallback?'enabled':'disabled'}`);
     try{return await runPi(['--version'],process.cwd(),10,10000);}catch(e){console.log((e as Error).message);return 0;}
   }
   if(command==='models')return runPi(['--list-models'],process.cwd(),30,100000);
   const cwd=resolve(option(args,'--workspace')??process.cwd());
-  if(command==='chat')return runPi(['--session-dir',resolve(cwd,'.harness','sessions')],cwd,86400,1000000);
+  const policy=await loadConfig();
+  if(!policy.allowPaidModels && policy.freeModels.length===0){console.error('Blocked: no verified free model is configured. Add provider/model IDs to freeModels in the harness config, or explicitly enable paid models.');return 3;}
+  const modelArgs=policy.allowPaidModels?[]:['--model',policy.freeModels[0]!, '--models',policy.freeModels.join(',')];
+  if(command==='chat')return runPi([...modelArgs,'--session-dir',resolve(cwd,'.harness','sessions')],cwd,86400,1000000);
   if(command==='run'){
     const task=args.filter((x,i)=>!['--workspace','--profile'].includes(x)&&args[i-1]!=='--workspace'&&args[i-1]!=='--profile').join(' ').trim();
     if(!task){console.error('Usage: harness-agent run "Describe the task"');return 2;}
     const profile=option(args,'--profile')??(await loadConfig()).defaultProfile;
     if(!['FAST','BALANCED','DEEP','MANUAL'].includes(profile)){console.error('Invalid profile');return 2;}
     const c=await loadConfig(), prompt=`[Profile: ${profile}. Paid models are prohibited unless explicitly configured. Inspect files, make targeted edits, run relevant tests, and report evidence.]\n\nTask: ${task}`;
-    return runPi(['--print','--session-dir',resolve(cwd,'.harness','sessions'),prompt],cwd,c.maxTaskSeconds,c.maxOutputBytes);
+    return runPi([...modelArgs,'--print','--session-dir',resolve(cwd,'.harness','sessions'),prompt],cwd,c.maxTaskSeconds,c.maxOutputBytes);
   }
   console.error(`Unknown command: ${command}\n\n${help}`);return 2;
 }
