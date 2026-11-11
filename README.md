@@ -49,4 +49,4 @@ Defaults are `allowPaidModels: false`, `allowPaidFallback: false`, and zero paid
 - `src/config.ts`: local validated policy configuration.
 - `src/safety.ts`: workspace path checks, exact replacement, and pure model eligibility helper.
 
-See `docs/SECURITY.md`, `docs/PROVIDERS.md`, and `docs/ROADMAP.md`. Offline tests do not contact model providers. No live provider, benchmark, or performance improvement is claimed.
+See `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `docs/PROVIDERS.md`, `docs/UPSTREAMS.md`, and `docs/ROADMAP.md`. Offline tests do not contact model providers. No live provider, benchmark, or performance improvement is claimed.
