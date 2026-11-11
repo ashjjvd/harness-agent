@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, writeFile, symlink, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { resolveWorkspacePath, exactReplace, chooseModel } from '../dist/safety.js';
+test('rejects traversal and absolute paths',async()=>{const d=await mkdtemp(join(tmpdir(),'h-'));try{await assert.rejects(resolveWorkspacePath(d,'../x'),/escapes/);await assert.rejects(resolveWorkspacePath(d,join(d,'x')),/Absolute/);}finally{await rm(d,{recursive:true,force:true});}});
+test('rejects symlink traversal',async()=>{const d=await mkdtemp(join(tmpdir(),'h-')),o=await mkdtemp(join(tmpdir(),'o-'));try{await writeFile(join(o,'s'),'x');await symlink(o,join(d,'link'));await assert.rejects(resolveWorkspacePath(d,'link/s'),/Symlink/);}finally{await rm(d,{recursive:true,force:true});await rm(o,{recursive:true,force:true});}});
+test('exact replacement edits one match',async()=>{const d=await mkdtemp(join(tmpdir(),'h-'));try{await writeFile(join(d,'a'),'before old after');await exactReplace(d,'a','old','new');assert.equal(await readFile(join(d,'a'),'utf8'),'before new after');}finally{await rm(d,{recursive:true,force:true});}});
+test('ambiguous edit refuses changes',async()=>{const d=await mkdtemp(join(tmpdir(),'h-'));try{await writeFile(join(d,'a'),'old old');await assert.rejects(exactReplace(d,'a','old','new'),/found 2/);assert.equal(await readFile(join(d,'a'),'utf8'),'old old');}finally{await rm(d,{recursive:true,force:true});}});
+test('free-only router blocks paid and non-tool models',()=>{const r=chooseModel([{provider:'p',id:'paid',free:false,toolCalling:true},{provider:'f',id:'plain',free:true,toolCalling:false}],false);assert.equal(r.selected,null);});
