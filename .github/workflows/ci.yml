@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '22.19'
       - run: npm ci
-      - run: npm install --no-save --package-lock=false typescript @types/node
+      - run: npm install --no-save --package-lock=false typescript@5.8.3 @types/node@25.1.0
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
