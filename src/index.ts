@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+import { main } from './cli.js';
+main(process.argv.slice(2)).then(code => { process.exitCode = code; }).catch(error => {
+  console.error(`harness-agent: ${(error as Error).message}`);
+  process.exitCode = 1;
+});
