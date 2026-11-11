@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.pi/
+.harness/
+*.log
+coverage/
+research/
+.DS_Store
