@@ -17,7 +17,7 @@ A small, safety-conscious TypeScript control layer around the maintained Pi codi
 git clone https://github.com/ashjjvd/harness-agent.git
 cd harness-agent
 npm ci
-npm install --no-save --package-lock=false typescript @types/node
+npm install --no-save --package-lock=false typescript@5.8.3 @types/node@25.1.0
 npm run build
 npm link
 harness-agent doctor
